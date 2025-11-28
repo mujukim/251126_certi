@@ -26,12 +26,16 @@ void init(int N, int M, char mGrade[][][])
 
 int cvtGrade2int(char Grade[])
 {
+	int len = strlen(Grade);
 	int ret = 0;
-	for (int i = 0; i < _M; i++)
+	for (int i = 0; i < len; i++)
 	{
-		ret += Grade[0] - 65 + (28 * i);
+		ret = Grade[i] - 'A' + (26 * ret);
+		// A = 0 AA = 0 B = 1 AB = 1 --> 그래서 길이가 길수록 약하게 만들어야함
 	}
-	return ret;
+	ret = ret + 10000 * len;
+	return ret; // A = 0, A = 20000 B = 1, AB =20001
+
 }
 
 void change(int mRow, int mCol, int mDir, int mLength, char mGrade[])
@@ -39,8 +43,8 @@ void change(int mRow, int mCol, int mDir, int mLength, char mGrade[])
 	int dx = 0, dy = 0;
 	for (int i = 0; i < mLength; i++)
 	{
-		if (mDir == 0) dy++;
-		if (mDir == 1) dx++;
+		if (mDir == 0) dy = i;
+		if (mDir == 1) dx = i;
 		map[mRow + dy][mCol + dx] = cvtGrade2int(mGrade);
 	}
 }
