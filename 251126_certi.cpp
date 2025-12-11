@@ -51,6 +51,7 @@ void change(int mRow, int mCol, int mDir, int mLength, char mGrade[])
 
 static char retStr[5]; // 최대 3글자 + '\0'
 
+// BFS + 이분탐색
 bool bfsCheck(int limit, int L, int sRow, int sCol, int eRow, int eCol) {
     queue<pair<int, int>> q;
     static int dist[MAX_N][MAX_N];
@@ -83,21 +84,35 @@ bool bfsCheck(int limit, int L, int sRow, int sCol, int eRow, int eCol) {
     return false;
 }
 
-char* calculrate(int L, int sRow, int sCol, int eRow, int eCol)
-{
-    vector<int> levels;
-    levels.reserve(_N * _N);
+// 등급 int → 문자열로 복원(최적화 매우 빠름)
+void decodeGrade(int code, char* out) {
+    int len = code / 20000;
+    int v = code % 20000;
+
+    out[len] = '\0';
+
+    for (int i = len - 1; i >= 0; i--) {
+        out[i] = 'A' + (v % 26);
+        v /= 26;
+    }
+}
+
+char* calculrate(int L, int sRow, int sCol, int eRow, int eCol) {
+
+    static int levels[MAX_N * MAX_N];
+    int lvCnt = 0;
+
     for (int r = 0; r < _N; r++)
         for (int c = 0; c < _N; c++)
-            levels.push_back(_map[r][c]);
+            levels[lvCnt++] = _map[r][c];
 
-    sort(levels.begin(), levels.end());
-    levels.erase(unique(levels.begin(), levels.end()), levels.end());
+    sort(levels, levels + lvCnt);
+    lvCnt = unique(levels, levels + lvCnt) - levels;
 
-    int lo = 0, hi = levels.size() - 1, best = -1;
+    int lo = 0, hi = lvCnt - 1, best = -1;
 
     while (lo <= hi) {
-        int mid = (lo + hi) / 2;
+        int mid = (lo + hi) >> 1;
         if (bfsCheck(levels[mid], L, sRow, sCol, eRow, eCol)) {
             best = mid;
             lo = mid + 1;
@@ -108,12 +123,10 @@ char* calculrate(int L, int sRow, int sCol, int eRow, int eCol)
     }
 
     if (best == -1) {
-        strcpy(retStr, "Zzz"); // 이동 불가 시 규칙 요청
+        retStr[0] = '\0';
         return retStr;
     }
 
-    // int → 문자열 다시 변환 (필요하면 구현, 아니면 등급 int도 OK)
-    // 여기서는 테스트 편하게 int를 연출 문자열로 반환
-    sprintf(retStr, "%d", levels[best]);
+    decodeGrade(levels[best], retStr);
     return retStr;
 }
